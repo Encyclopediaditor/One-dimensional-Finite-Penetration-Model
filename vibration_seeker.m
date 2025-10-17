@@ -18,7 +18,7 @@ function [Tv, TUX, TGX, Frequency, Modal] = vibration_seeker(X, t, config, pre, 
 %   TGX             matrix of nxm, with n array of timestep and m column of elemental radial displacement
 %   Frequency       vector of mx1
 %   Modal           matrix of mxm   
-%%
+%% 0. Preparation
 Coord = pre.Coord;
 mL = pre.mL;
 radial = plt.vibration.radial;
@@ -26,6 +26,7 @@ p = config.projectile;
 xi = p.xi;
 bar_option = p.bar;
 beam_option = p.beam;
+Tv_all = struct();
 
 %% 1. Force analysis
 [TFX, TFY, TM, TFr] = drag_calculator_review2(X, t, config, pre);
@@ -51,26 +52,27 @@ end
 if ~config.projectile.plastic    
     if plt.vibration.modal
         Mn = diag(Modal'*M*Modal);
-        [TUX, TAX] = vibration_bar(Frequency, Modal, Mn, TFX, xi, t);
+        [Tv_all.TUX, Tv_all.TVX, Tv_all.TAX] = vibration_bar(Frequency, Modal, Mn, TFX, xi, t);
     else
         C = a(1)*M + a(2)*K;              
         U = zeros(size(K,1),length(t));
         dU = U;
         ddU = U;      
-        [UXT, ~, AXT] = Newmark_beta(M, K, C, t, TFX', U, dU, ddU, 1/4);
-        TUX = UXT';
-        TAX = AXT';
+        [UXT, VXT, AXT] = Newmark_beta(M, K, C, t, TFX', U, dU, ddU, 1/4);
+        Tv_all.TUX = UXT';
+        Tv_all.TVX = VXT';
+        Tv_all.TAX = AXT';
     end
         
-    [TUX, TAX, TN, EA_all_all, Ga_all_all, Epsilon, Sigma, TGX] = vibration_bar_post(TUX, TAX, TFX, t, p.E, pre, bar_option);
-    Epsilon_p = zeros(size(Sigma));
+    Tv_all = vibration_bar_post(Tv_all, TFX, t, p.E, p.G, pre, bar_option);
+    Tv_all.Epsilon_p = zeros(size(Tv_all.Sigma));
 else   
     if strcmp(config.projectile.bar,'MH')
-        [TUX, TAX, Epsilon, Epsilon_p, TN, Sigma, EA_all_all, Ga_all_all, ~, ~] = Newmark_beta3(config, pre, radial, false, M, a, t, TFX');
+        [Tv_all, ~, ~] = Newmark_beta3(config, pre, radial, false, M, a, t, TFX');
     else
-        [TUX, TAX, Epsilon, Epsilon_p, TN, Sigma, EA_all_all, Ga_all_all, ~, ~] = Newmark_beta2(config, pre, false, M, a, t, TFX');
+        [Tv_all, ~, ~] = Newmark_beta2(config, pre, false, M, a, t, TFX');
     end
-    [TGX, TUX] = vibration_bar_TGX(TUX, Ga_all_all, Epsilon, Coord, p.bar);
+    Tv_all = vibration_bar_TGX(Tv_all, Coord, p.bar);
 end
 
 %% 3. Beam analysis
@@ -82,6 +84,7 @@ if contains(plt.vibration.option,'Y') || contains(plt.vibration.option,'M')
     UT = zeros(2*length(Coord),length(t));
     dUT = UT;
     len_t = length(t)-1;
+    TN = Tv_all.TN;
     
     for i = 1:len_t
         N = (TN(i,:))';
@@ -115,15 +118,12 @@ if contains(plt.vibration.option,'Y') || contains(plt.vibration.option,'M')
         info_analysis_progress(len_t, i, 'Lateral Vibration: ')
     end
     
-    TUY = UT(1:length(Coord),:)';
+    Tv_all.TUY = UT(1:length(Coord),:)';
     MT = -EI_all.*(vibration_dX(Coord, UT(length(Coord)+1:end,:)));
-    TM = MT';
-else
-    TUY = [];
-    TM = [];
+    Tv_all.TM = MT';
 end
 
 %% 4. Output
-Tv = vibration_output(TUX, TUY, TAX, TN, TM, EA_all_all, Ga_all_all, Epsilon, Epsilon_p, Sigma, TGX, p, plt.vibration.option);
+[Tv, TUX, TGX] = vibration_output(Tv_all, p, plt.vibration.option);
 
 end

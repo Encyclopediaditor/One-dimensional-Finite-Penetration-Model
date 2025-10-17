@@ -1,4 +1,4 @@
-function vibration_output_plot(X, Tv, T, AXIS, num_i, num_figure)
+function vibration_output_plot(X, Tv, T, AXIS, num_i, num_figure, Demo)
 % vibration_output_plot  plot for thesis
 % Invoking               none
 % Invoked                test
@@ -9,6 +9,7 @@ function vibration_output_plot(X, Tv, T, AXIS, num_i, num_figure)
 %   AXIS                 vector of 1x4, [xmin xmax ymin ymax]
 %   num_i                scalar, rank of timestep to be plotted
 %   num_figure           scalar, rank of figure
+%   Demo                 string, ylabel of figure
 %%
 Style1 = {'b-','r-','k-','m-','c-'};
 Style2 = {'bo','r+','k*','m^','cv'};
@@ -17,6 +18,9 @@ Style3 = {'b-o','r-+','k-*','m-^','c-v'};
 figure(num_figure)
 P = [];
 tim = 1;
+if strcmp(Demo, 'Sigma') 
+    X = (X(1:end-1) + X(2:end))/2;
+end
 for i = num_i
     plot(X, Tv(i,:), Style1{tim},'linewidth',1.5);    
     hold on
@@ -25,12 +29,19 @@ for i = num_i
     P = [P p];
     tim = tim + 1;
 end
-
-axis(AXIS);
+if strcmp(Demo, 'u')
+  ylabel('Displacement / m')
+elseif strcmp(Demo, 'N')
+  ylabel('Force / N') 
+elseif strcmp(Demo, 'Sigma')
+  ylabel('\sigma / Pa')  
+elseif strcmp(Demo, 'v')
+  ylabel('Velocity / (m/s)') 
+else
+  ylabel('Acc / (m/s^2)')   
+end
 xlabel('Location / m')
-% ylabel('\sigma_v / Pa')
-ylabel('\psi')
-% ylabel('Displacement / m')
+axis(AXIS);
 lgd = legend(P,'location','southwest');
 lgd.NumColumns = 1;
 ax = gca;
