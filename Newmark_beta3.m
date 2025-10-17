@@ -1,25 +1,26 @@
-function [TUX, TAX, Epsilonx, Epsilon_p, TN, Sigma, EA_all_all, Ga_all_all, T, X_all] = Newmark_beta3(config, pre, radial, coupled, varargin)
+function [Tv_all, T, X_all] = Newmark_beta3(config, pre, radial, coupled, varargin)
 % Newmark_beta3  engine of plastic structural response for MH bar
-% Invoking       tmax_estimator; deformable; vibration_bar_K; vibration_dX; constitution_sigma; 
-%                Newmark_beta_iter; info_analysis_progress; Newmark_beta_recover
-% Invoked        Coupled_plastic; vibration_seeker   
+% Invoking              tmax_estimator; deformable; vibration_bar_K; vibration_dX; constitution_sigma; 
+%                       Newmark_beta_iter; info_analysis_progress; Newmark_beta_recover
+% Invoked               Coupled_plastic; vibration_seeker   
 % INPUT
-%   config       struct, representing basic configuratuion options of single claculation
-%   pre          struct, obtained result from pre-processing
-%   radial       logical, whether to consider radial forces 
-%   coupled      logical, whether the vibration and rigid motion is coupled
-%   varargin     cell with multi-type elements, additional info
+%   config              struct, representing basic configuratuion options of single claculation
+%   pre                 struct, obtained result from pre-processing
+%   radial              logical, whether to consider radial forces 
+%   coupled             logical, whether the vibration and rigid motion is coupled
+%   varargin            cell with multi-type elements, additional info
 % OUTPUT
-%   TUX          matrix of nxm, with n array of timestep and m column of elemental axial displacement 
-%   TAX          matrix of nxm, with n array of timestep and m column of elemental axial acceleration
-%   Epsilon      matrix of (m-1)xn, with m-1 array of elemental strain and n column of timestep
-%   Epsilon_p    matrix of (m-1)xn, with m-1 array of elemental plastic strain and n column of timestep
-%   TN           matrix of nx(m-1), with n array of timestep and m-1 column of elemental axial force
-%   Sigma        matrix of (m-1)xnxj, with m-1 array of elemental stress, n column of timestep, and j type of materials
-%   EA_all_all   matrix of (m-1)xn, with m-1 array of elemental axial stiffness and n column of timestep
-%   GA_all_all   matrix of (m-1)xn, with m-1 array of elemental shear stiffness and n column of timestep
-%   T            vector of nx1, recorded sinmulation time
-%   X_all        matrix of nx6, with each column [X Y VX VY Fai Omega]  
+%   Tv_all.TUX          matrix of nxm, with n array of timestep and m column of elemental axial displacement 
+%   Tv_all.TVX          matrix of nxm, with n array of timestep and m column of elemental axial velocity
+%   Tv_all.TAX          matrix of nxm, with n array of timestep and m column of elemental axial acceleration
+%   Tv_all.Epsilon      matrix of (m-1)xn, with m-1 array of elemental strain and n column of timestep
+%   Tv_all.Epsilon_p    matrix of (m-1)xn, with m-1 array of elemental plastic strain and n column of timestep
+%   Tv_all.TN           matrix of nx(m-1), with n array of timestep and m-1 column of elemental axial force
+%   Tv_all.Sigma        matrix of (m-1)xnxj, with m-1 array of elemental stress, n column of timestep, and j type of materials
+%   Tv_all.EA_all_all   matrix of (m-1)xn, with m-1 array of elemental axial stiffness and n column of timestep
+%   Tv_all.GA_all_all   matrix of (m-1)xn, with m-1 array of elemental shear stiffness and n column of timestep
+%   T                   vector of nx1, recorded sinmulation time
+%   X_all               matrix of nx6, with each column [X Y VX VY Fai Omega]  
 %% Preparation
 gamma = 1/2;
 beta = 1/4;
@@ -66,11 +67,9 @@ end
 Epsilon_turning2 = -Epsilon_turning;
 
 %% Iteration
-for i = 1:length_t-1 
-    for k = 2:num_mesh+1
-        N(k,i) = N(k-1,i) + mL(k-1)*(ddU(k-1,i) + ddU(k,i))/2 - (P(k-1,i) + P(k,i))/2;
-    end
 
+for i = 1:length_t-1 
+   
     if coupled
         t = T(i);
         X = X_all(:,i);
@@ -182,22 +181,26 @@ for i = 1:length_t-1
     delta_U_real(num_mesh + 2: num_mesh + 2 + k_key) = delta_U_real(num_mesh + 2: num_mesh + 2 + k_key) + 0.658*delta_Epsilon_p2.*R(1:k_key+1);
     [U_real(:,i+1), dU_real(:,i+1), ddU_real(:,i+1)] = Newmark_beta_iter(U_real(:,i), dU_real(:,i), ddU_real(:,i), delta_U_real, gamma, beta, dt);  
     
+    for k = 2:num_mesh+1
+        N(k,i+1) = N(k-1,i+1) + mL(k-1)*(ddU(k-1,i+1) + ddU(k,i+1))/2 - (P(k-1,i+1) + P(k,i+1))/2;
+    end
     if ~coupled 
         info_analysis_progress(length_t, i, 'Axial Vibration: ')
     end
 end
 
+Tv_all = struct();
 if coupled
-    T = T(1:i);                         X_all = (X_all(:,1:i))';
-    TUX = (U_real(:,1:i))';             TAX = (ddU_real(:,1:i))';
-    Epsilonx = Epsilonx(:,1:i);         Epsilon_p = Epsilon_p(:,1:i, :);
-    TN = (N(:,1:i))';                   Sigma = Sigma(:, 1:i, :);
-    EA_all_all = EA_all_all(:,1:i);     Ga_all_all = Ga_all_all(:,1:i);
+    X_all = (X_all(:,1:i))';
 else
-    X_all = [];
-    TUX = U_real';
-    TAX = ddU_real';
-    TN = N';
+    X_all = []; 
+    i = i+1;
 end
+
+T = T(1:i);                                Tv_all.TUX = (U_real(:,1:i))';
+Tv_all.TVX = (dU_real(:,1:i))';            Tv_all.TAX = (ddU_real(:,1:i))';    
+Tv_all.Epsilon = Epsilonx(:,1:i);          Tv_all.Epsilon_p = Epsilon_p(:,1:i, :);
+Tv_all.TN = (N(:,1:i))';                   Tv_all.Sigma = Sigma(:, 1:i, :);
+Tv_all.EA_all_all = EA_all_all(:,1:i);     Tv_all.Ga_all_all = Ga_all_all(:,1:i);
 
 end

@@ -1,6 +1,6 @@
 clear;clc;
 
-file_name = 'Bar_test';
+file_name = 'Final_test';
 info = struct();
 info.project_name = file_name;
  %% 1 Basic configuratuion options 
@@ -60,7 +60,7 @@ info.plot.saving = true; % Can be true or false
  
 % For vibration analysis only
 info.plot.vibration_analysis = true; % Can be true or false
-info.plot.vibration.option = 'N'; % Now support: 'X'; 'Y'; 'N'; 'M'; 'EA'; 'GA'; 'Sigma'; 'Epsilon'; 'PlasticEp'; 'Ac'; 'V' and their combination
+info.plot.vibration.option = 'N'; % Now support: 'X'; 'Y'; 'N'; 'M'; 'EA'; 'GA'; 'Sigma'; 'Epsilon'; 'PlasticEp'; 'Ac'; 'Ve'; 'Radi' and their combination
 info.plot.vibration.modal = true; % Can be true or false
 info.plot.vibration.modal_plot = ''; % Now support:  ''; 'Curve'; 'Color'
 info.plot.vibration.tip_fix = true; % Can be true or false

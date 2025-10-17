@@ -3,7 +3,7 @@ clear;clc;
 %    Function: execute stored request
 %    Requirement: select xx_info.mat
 %%
-[filename, pathname] = uigetfile('*.mat', 'Select input info file to execute') ;
+[filename, pathname] = uigetfile('*.mat', 'Select input info file to execute');
 load([pathname, filename],'info','binding');
 Info = info_analysis(info, binding);
 

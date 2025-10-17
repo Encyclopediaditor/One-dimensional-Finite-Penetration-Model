@@ -466,32 +466,34 @@ clear;clc;
 
 %% Output plot
 
-% load Acc_test2V_info.mat
-% load Acc_test2V_result.mat
-% 
-% Coord = Result{1}.pre.Coord;
-% X_real = (Coord(:,1))';
-% Viber_option = info_analysis_sigma(info.config.projectile.E, info.plot.vibration.option);
-% [X, ytext] = info_analysis_viber(X_real, Viber_option{1});
-% X = X - min(X);
-% x_max = max(X);
-% TV = cell(1,length(Result));
-% 
-% T = Result{1}.now.T;
-% Tv = Result{1}.post.viber.Tv;
-% Tv = Tv{1};
+load Acc_testX_info.mat
+load Acc_testX_result.mat
+
+Coord = Result{1}.pre.Coord;
+X_real = (Coord(:,1))';
+Viber_option = info_analysis_sigma(info.config.projectile.E, info.plot.vibration.option);
+[X, ytext] = info_analysis_viber(X_real, Viber_option{1});
+X = X - min(X);
+x_max = max(X);
+TV = cell(1,length(Result));
+
+T = Result{2}.now.T;
+Tv = Result{2}.post.viber.Tv;
+Tv = Tv{3};
+Demo = 'Sigma';
 % [T_a,Tv] = dashploter_frame(T,Tv,info.plot.frame_option,info.plot.num_frame);
-% v_max = max(max(Tv));
-% v_min = min(min(Tv));
-% 
-% AXIS = [0,x_max,v_min,v_max];
-% 
-% for num_figure = 1:4
-% %     num_i = num_figure*14 - 13 + [1, 4, 7, 10, 13];
+T_a = T;
+v_max = max(max(Tv(1:40,:)));
+v_min = min(min(Tv(1:40,:)));
+
+AXIS = [0,x_max,v_min,v_max];
+
+for num_figure = 1:4
+%     num_i = num_figure*14 - 13 + [1, 4, 7, 10, 13];
 %     num_i = (num_figure*5 - 5 + [1, 2, 3, 4, 5])*2-1;
-% %     num_i = num_figure*5 - 2 + [1, 2, 3, 4, 5];
-%     vibration_output_plot(X, Tv, T_a, AXIS, num_i, num_figure)
-% end
+    num_i = (num_figure-1)*10 + [1, 3, 5, 7, 9];
+    vibration_output_plot(X, Tv, T_a, AXIS, num_i, num_figure, Demo)
+end
 
 %% Heavy pound ep_max recongnization
 
@@ -566,8 +568,8 @@ clear;clc;
 % dsolve(x*diff(f,x) + f == a*x)
 
 %% Acc test
-% load Acc_test2_info.mat
-% load Acc_test2_result.mat
+% load Acc_testX_info.mat
+% load Acc_testX_result.mat
 % Color = [0    0.4470    0.7410;
 %     0.8500    0.3250    0.0980];
 % Name = {'I', 'II'};
@@ -579,11 +581,11 @@ clear;clc;
 %     len = 525;
 %     T = result.now.T;    
 %     X = result.pre.Coord(1:len,1);
-%     Tv = result.post.viber.Tv{1}(:,1:len);
+%     Tv = result.post.viber.Tv{2}(:,1:len);
 %     [TFX, ~, ~] = drag_calculator_review2(result.now.X, T, info.config, result.pre);
 %     Tv = Tv+sum(TFX,2)/result.pre.m0;
 %     
-%     Int_Tv = trapz(T, Tv.^2);
+%     Int_Tv = trapz(T(1:442), Tv(1:442,:).^2);
 %     
 %     figure(1)
 %     plot(X-min(X), max(Tv),'Color',Color(i,:),'DisplayName',Name{i},'linewidth',1.5); 
@@ -742,19 +744,19 @@ clear;clc;
 
 %% find function
 
-A = dir();
-
-for i = 1:length(A)
-   if ~A(i).isdir && strcmp(A(i).name(end-1:end),'.m')
-      fid  = fopen(A(i).name);
-      tline = fgetl(fid);
-      while ~isnumeric(tline)
-          if contains(tline, 'info_analysis_progress_bar')
-               warning(['Found in ' A(i).name])
-               break
-          end
-          tline = fgetl(fid);
-      end
-      fclose(fid);
-   end
-end
+% A = dir();
+% 
+% for i = 1:length(A)
+%    if ~A(i).isdir && strcmp(A(i).name(end-1:end),'.m')
+%       fid  = fopen(A(i).name);
+%       tline = fgetl(fid);
+%       while ~isnumeric(tline)
+%           if contains(tline, 'info_analysis_progress_bar')
+%                warning(['Found in ' A(i).name])
+%                break
+%           end
+%           tline = fgetl(fid);
+%       end
+%       fclose(fid);
+%    end
+% end

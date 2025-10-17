@@ -19,14 +19,15 @@ function [T, X_all, TUX, TGX, Tv] = Coupled_plastic(config, pre, t_max, X0, dt_d
 %   Tv              matrix of nxm, with n array of timestep and m column of elemental designated variable
 %%
 if strcmp(config.projectile.bar,'MH')
-    [TUX, TAX, Epsilon, Epsilon_p, TN, Sigma, EA_all_all, Ga_all_all, T, X_all] = Newmark_beta3(config, pre, radial, true, t_max, X0, dt_default, vmin);
+    [Tv_all, T, X_all] = Newmark_beta3(config, pre, radial, true, t_max, X0, dt_default, vmin);
 else
-    [TUX, TAX, Epsilon, Epsilon_p, TN, Sigma, EA_all_all, Ga_all_all, T, X_all] = Newmark_beta2(config, pre, true, t_max, X0, dt_default, vmin); 
+    [Tv_all, T, X_all] = Newmark_beta2(config, pre, true, t_max, X0, dt_default, vmin); 
 end
 
-[TGX, TUX] = vibration_bar_TGX(TUX, Ga_all_all, Epsilon, pre.Coord, config.projectile.bar);
-
-Tv = vibration_output(TUX, [], TAX, TN, [], EA_all_all, Ga_all_all, Epsilon, Epsilon_p, Sigma, TGX, config.projectile, option);
+Tv_all = vibration_bar_TGX(Tv_all, pre.Coord, config.projectile.bar);
+TUX = Tv_all.TUX;
+TGX = Tv_all.TGX;
+Tv = vibration_output(Tv_all, config.projectile, option);
 
 end
 

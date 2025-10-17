@@ -34,7 +34,7 @@ function [mL, A_all, I_all, lc, I0] = Config_generator(Coord, rho, tip_fix)
     lc = lc/sum(mL);
 
     if tip_fix
-        A_all(ceil(0.9*num_mesh):end) = A_all(floor(0.9*num_mesh));
-        I_all(ceil(0.9*num_mesh):end) = I_all(floor(0.9*num_mesh));
+        A_all(ceil(0.95*num_mesh):end) = A_all(floor(0.95*num_mesh));
+        I_all(ceil(0.95*num_mesh):end) = I_all(floor(0.95*num_mesh));
     end
 end

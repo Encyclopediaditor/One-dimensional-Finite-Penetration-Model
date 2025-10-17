@@ -1,4 +1,4 @@
-function [TUX, TAX] = vibration_bar(Frequency, Modal, Mn, TFX, xi, t)
+function [TUX, TVX, TAX] = vibration_bar(Frequency, Modal, Mn, TFX, xi, t)
 % vibration_bar  X directional structural response calculation of projectile, based on modal method
 % Invoking       Newmark_beta; info_analysis_progress
 % Invoked        vibration_seeker
@@ -10,11 +10,13 @@ function [TUX, TAX] = vibration_bar(Frequency, Modal, Mn, TFX, xi, t)
 %   xi           scalar, damping ratio
 %   t            vector of nx1, recorded sinmulation time
 % OUTPUT
-%   TUX          matrix of nxm, with n array of timestep and m column of elemental axial displacement 
+%   TUX          matrix of nxm, with n array of timestep and m column of elemental axial displacement
+%   TVX          matrix of nxm, with n array of timestep and m column of elemental axial velocity
 %   TAX          matrix of nxm, with n array of timestep and m column of elemental axial acceleration      
 %%
 num_modal = length(Frequency);
 TQ = zeros(length(t), num_modal);
+TdQ = TQ;
 TddQ = TQ;
 Modal = Modal(:,1:num_modal);
 
@@ -30,13 +32,15 @@ for j = 1:num_modal
     dU = U;
     ddU = U;
 
-    [U, ~, ddU] = Newmark_beta(m, k, c, t, p', U, dU, ddU, 1/4);
+    [U, dU, ddU] = Newmark_beta(m, k, c, t, p', U, dU, ddU, 1/4);
     TQ(:,j) = U';
-    TddQ(:,j) = ddU';
     
+    TddQ(:,j) = ddU';
+    TdQ(:,j) = dU';
     info_analysis_progress(num_modal, j, 'Axial Vibration: ')
 end
 
 TUX = TQ*Modal';
+TVX = TdQ*Modal';
 TAX = TddQ*Modal';
 end

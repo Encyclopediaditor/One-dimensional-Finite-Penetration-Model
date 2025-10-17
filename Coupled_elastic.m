@@ -18,7 +18,8 @@ function [T, X_all, TUX, TGX, Tv] = Coupled_elastic(config, pre, t_max, X0, dt_d
 %   TGX             matrix of nxm, with n array of timestep and m column of elemental radial stain
 %   Tv              matrix of nxm, with n array of timestep and m column of elemental designated variable
 %%
-    bar = config.projectile.bar;
+    p = config.projectile;
+    bar = p.bar;
     num_mesh = length(pre.EA_all);
     t_max = tmax_estimator(config, pre, t_max);
     X_all = zeros(length(X0), ceil(t_max/dt_default));
@@ -73,13 +74,18 @@ for i = 1:length(T)-1
     [UTX(:,i:i+1), VTX(:,i:i+1), ATX(:,i:i+1)] = Newmark_beta(M, K, C, T(i:i+1), FTX(:,i:i+1), UTX(:,i), VTX(:,i), ATX(:,i), 1/4); 
 end
 
+Tv_all = struct();
 T = T(1:i);
 X_all = (X_all(:,1:i))';
-TUX = (UTX(:,1:i))';
-TAX = (ATX(:,1:i))';
+Tv_all.TUX = (UTX(:,1:i))';
+Tv_all.TVX = (VTX(:,1:i))';
+Tv_all.TAX = (ATX(:,1:i))';
 TFX = (FTX(:,1:i))';
 
-[TUX, TAX, TN, EA_all_all, Ga_all_all, Epsilon, Sigma, TGX] = vibration_bar_post(TUX, TAX, TFX, T, config.projectile.E, pre, bar);
-Epsilon_p = zeros(size(Sigma));
-Tv = vibration_output(TUX, [], TAX, TN, [], EA_all_all, Ga_all_all, Epsilon, Epsilon_p, Sigma, TGX, config.projectile, option);
+Tv_all = vibration_bar_post(Tv_all, TFX, T, p.E, p.G, pre, bar);
+Tv_all.Epsilon_p = zeros(size(Tv_all.Sigma));
+TUX = Tv_all.TUX;
+TGX = Tv_all.TGX;
+Tv = vibration_output(Tv_all, p, option);
+
 end

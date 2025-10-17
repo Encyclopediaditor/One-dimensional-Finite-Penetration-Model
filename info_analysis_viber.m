@@ -40,7 +40,10 @@ switch option
     case 'Ac'
         X = X_real;
         ytext = 'Acc / (m/s^2)';
-    case 'V'
+    case 'Ve'
+        X = X_real;
+        ytext = '\Delta V / (m/s)';
+    case 'Radi'
         X = X_real;
         ytext = '\psi';
 end

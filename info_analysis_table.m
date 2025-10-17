@@ -47,7 +47,7 @@ T = {'config','medium','config','','Wall loc',2, '\n %%%% 1.2 Medium mechanics',
     'plot','num_frame','','','num_{frame}',1, '%% Number of frames','绘制总帧数';
     'plot','saving','','','saving',6,'%% Can be true or false \n \n%% For vibration analysis only','是否保存结果';
     'plot','vibration_analysis','','','vibration analysis',6, '%% Can be true or false','进行结构响应分析';
-    'plot','vibration','option','','vibration.option',0, '%% Now support: ''X''; ''Y''; ''N''; ''M''; ''EA'';  ''GA''; ''Sigma''; ''Epsilon''; ''PlasticEp''; ''Ac''; ''V'' and their combination','结构响应分析项';
+    'plot','vibration','option','','vibration.option',0, '%% Now support: ''X''; ''Y''; ''N''; ''M''; ''EA''; ''GA''; ''Sigma''; ''Epsilon''; ''PlasticEp''; ''Ac''; ''Ve''; ''Radi'' and their combination','结构响应分析项';
     'plot','vibration','modal','','modal solver',6, '%% Can be true or false','是否使用模态方法';
     'plot','vibration','modal_plot','','modal',0, '%% Now support:  ''''; ''Curve''; ''Color''','模态示意图绘制方法';
     'plot','vibration','tip_fix','','tip fix',6, '%% Can be true or false','是否对弹尖进行修正';

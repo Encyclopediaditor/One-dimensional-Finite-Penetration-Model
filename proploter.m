@@ -13,13 +13,17 @@ function proploter(X, T, config, pre, post, plt, filename)
 %%
 % Basic info unzip
 info = struct('config',config);
-[T0,X] = dashploter_frame(T,X,plt.frame_option,plt.num_frame);
-[~,TUX] = dashploter_frame(T,post.viber.TUX,plt.frame_option,plt.num_frame);
-[~,TGX] = dashploter_frame(T,post.viber.TGX,plt.frame_option,plt.num_frame);
+% [T0,X] = dashploter_frame(T,X,plt.frame_option,plt.num_frame);
+% [~,TUX] = dashploter_frame(T,post.viber.TUX,plt.frame_option,plt.num_frame);
+% [~,TGX] = dashploter_frame(T,post.viber.TGX,plt.frame_option,plt.num_frame);
+% Tv = post.viber.Tv;
+% for i = 1:length(Tv)
+%     [~,Tv{i}] = dashploter_frame(T,Tv{i},plt.frame_option,plt.num_frame);   
+% end
+T0 = T;
+TUX = post.viber.TUX;
+TGX = post.viber.TGX;
 Tv = post.viber.Tv;
-for i = 1:length(Tv)
-    [~,Tv{i}] = dashploter_frame(T,Tv{i},plt.frame_option,plt.num_frame);   
-end
 
 % Geometry
 Coord = pre.Coord;
@@ -66,7 +70,9 @@ for num_figure = 1:len_figure
             Fai_max = max(Fai_max, max(max(Tv{num_viber+i})));
         end
     end
-    
+    Fai_max = 0;
+    Fai_min = -570e6;
+
     for i = 1:length(T0)
         X_now = X_real + range*(TUX(i,:))';
         X_all = repmat(X_now, [1, num_r]);
@@ -86,12 +92,22 @@ for num_figure = 1:len_figure
             end
             Y_all(j,:) = [fliplr(-Y_now) Y_now(2:end)]; 
         end
-        Fai(end,1) = Fai_max;
-        Fai(end,end) = Fai_min;
+
+        for j = 1:size(Fai,1)
+            for k = 1:size(Fai,2)
+                if Fai(j,k) > Fai_max
+                    Fai(j,k) = Fai_max;
+                elseif Fai(j,k) < Fai_min
+                    Fai(j,k) = Fai_min;
+                elseif isnan(Fai(j,k))
+                    Fai(j,k) = Fai_min;
+                end
+            end
+        end
         
-        Text = {['t = ' num2str(T0(i),'%10.2e') 's']};
+        Text = {['t = ' num2str(T0(i),'%10.2e') 's']}
         figure(num_figure)        
-        Config_generator_demo(info, num_figure, Text);  
+        Config_generator_demo(info, num_figure, {''});  
         hold on
               
         fai = X(i,5);
@@ -103,13 +119,15 @@ for num_figure = 1:len_figure
         C = Medium_colormap(num_r,0.1,false);
         contour((X_all-X_min)/L,Y_all/R,Fai,'ShowText','off','fill','on')
         colormap(C)
-        hc = colorbar('west','AxisLocation','out');
-        hc.Label.String =  ytext;
+%         hc = colorbar('west','AxisLocation','out');
+%         hc.Label.String =  ytext;
         
         hold off
         ax = gca;
         ax.FontName = 'Times New Roman';
         ax.FontSize = 16;
+        ax.InnerPosition = [0.03,0.03,0.94,0.94];
+        ax.Position = [0.03,0.03,0.94,0.94];
         dashploter_save(plt.saving, i, [filename(1:end-4) ' ' Viber_option{num_viber} '.gif'])   
     end
     if num_viber == loc_Sigma || num_viber == loc_PlasticEp
